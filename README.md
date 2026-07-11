@@ -1,38 +1,80 @@
+<div align="center">
+
 # doubao-search-mcp
 
-MCP server for [Doubao Search](https://console.volcengine.com/search-infinity/web-search-exp) (豆包搜索) — the web search API built for AI agents, now open to developers with **500 free searches/month**.
+> *「你给 Claude Code 换上了国产模型，然后发现它不会上网了」*
 
-Give your Claude Code / Cursor / any MCP client real web search, backed by ByteDance-exclusive Chinese sources (今日头条 Toutiao, 抖音百科 Douyin Baike) plus the open web, with publish timestamps and traceable source URLs on every result.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![MCP](https://img.shields.io/badge/Model%20Context%20Protocol-Server-green)](https://modelcontextprotocol.io)
+[![Runtime](https://img.shields.io/badge/Runtime-Claude%20Code%20·%20Codex%20·%20Cursor%20·%20任何%20MCP%20client-blueviolet)](#安装)
 
-## Why
+<br>
 
-Claude Code's built-in WebSearch is an Anthropic server-side tool. The moment you switch the model to a Chinese LLM via an Anthropic-compatible endpoint (Doubao Seed, Kimi, GLM, DeepSeek...), WebSearch stops working — your agent goes offline. This MCP server plugs that gap, and its Chinese-content quality is a step up from overseas search APIs even if you don't switch models.
+**一条命令，让你的 Agent 用上豆包搜索：字节系独家信源、千字级正文摘要、发布时间精确到秒，每月 500 次免费。**
 
-What the API actually returns (all verified by hand):
+<sub>豆包搜索是火山引擎为 AI Agent 构建的联网信息服务，2026 年 7 月起面向企业和开发者开放。</sub>
 
-- **Long-form snippets** (up to 2000 chars of article body per result), ready for direct LLM consumption — not blue links you have to re-crawl
-- **Publish time down to the second** + source name on every result, so the agent can judge freshness and authority
-- **Exclusive ByteDance sources**: Toutiao articles, Douyin Baike (top-ranked for entity/concept lookups)
-- **Cross-language**: English queries return first-party sources (official docs, changelogs, blogs)
-- **Images as CDN URLs** with dimensions, opt-in per query
+<br>
 
-## Install
+[为什么需要它](#为什么需要它) · [效果](#效果) · [安装](#安装) · [工具参数](#工具参数)
 
-### 1. Get an API key
+<br>
 
-Go to [Doubao Search on Volcengine](https://console.volcengine.com/search-infinity/web-search-exp), activate the service, and create an API key. 500 searches/month are free; pay-as-you-go beyond that.
+[English](#english)
 
-### 2. Add to Claude Code
+</div>
+
+---
+
+## 为什么需要它
+
+Claude Code 内置的 WebSearch 是 Anthropic 的服务端工具，跑在 Anthropic 的服务器上。一旦你把 `ANTHROPIC_BASE_URL` 指向国产模型的兼容端点（豆包 Seed、Kimi、GLM、DeepSeek……），WebSearch 就没了执行器：工具看着还在，agent 实际上断网了。很多人是切完模型才发现这件事。
+
+海外搜索 API 能补上这个缺口，但对中文开发者有三个现实问题：美元结算（有的还强制绑信用卡）、Google 系索引搜不到中文生态内容、国内直连不稳定。
+
+豆包搜索正好把这三个问题一起解决了，这个 MCP server 把它变成任何 agent 一条命令就能装上的搜索工具。
+
+## 效果
+
+以下是真实返回（工具调用一次的原始输出节选）：
+
+```
+共 20 条结果，返回前 10 条：
+
+[1] "一人公司"与"手搓经济"，两个新词寓春意-新华网
+来源: 新华网 | 2026-03-19T09:00:22+08:00
+URL: http://www.xinhuanet.com/tech/20260319/259b0a6eb28c...
+当AI技术高歌猛进，"机器换人"的焦虑如影随形。近期走红的"一人公司"与
+"手搓经济"两个新词，则为我们揭示了技术进步的另一面……（千字级正文摘要）
+```
+
+几个实测过的细节：
+
+- **千字级正文摘要**，不是两行摘要加一堆蓝链接。别家要「搜索 API + 抓取 API」两跳才能凑齐的链路，它一次返回
+- **发布时间精确到秒**，agent 自己就能判断信息新鲜度。实测查行业热点，返回过发布时间是「查询前一晚」的文章
+- **字节系独家信源**：今日头条正文高频返回；查「XX 是什么」「XX 是谁」这类实体问题，抖音百科基本排第一
+- **每条结果自带正文 token 计数**（`ContentTokenCount`），你可以精确控制塞进上下文的量——这个字段暴露了它确实是为 Agent 设计的
+- **跨语言**：英文查询返回官方文档、changelog 这类一手信源，不用中英文各配一个搜索
+
+## 安装
+
+### 第一步：拿一个 API Key
+
+去 [火山引擎豆包搜索控制台](https://console.volcengine.com/search-infinity/web-search-exp) 开通服务并创建 API Key。**每月 500 次搜索免费**，超出按量付费。
+
+### 第二步：加进你的 Agent
+
+**Claude Code**（一条命令）：
 
 ```bash
 claude mcp add doubao-search \
-  -e DOUBAO_SEARCH_API_KEY=your-key-here \
+  -e DOUBAO_SEARCH_API_KEY=你的Key \
   -- npx -y github:alchaincyf/doubao-search-mcp
 ```
 
-Add `--scope user` to enable it in every project.
+加 `--scope user` 则所有项目可用。
 
-### 3. Or any other MCP client (Cursor, Codex, etc.)
+**Cursor / Codex / 其他 MCP client**（配置文件）：
 
 ```json
 {
@@ -41,52 +83,101 @@ Add `--scope user` to enable it in every project.
       "command": "npx",
       "args": ["-y", "github:alchaincyf/doubao-search-mcp"],
       "env": {
-        "DOUBAO_SEARCH_API_KEY": "your-key-here"
+        "DOUBAO_SEARCH_API_KEY": "你的Key"
       }
     }
   }
 }
 ```
 
-### From source
+**最省事的方式**：把这个仓库链接直接丢给你的 agent，说一句：
+
+```
+帮我安装这个 MCP：https://github.com/alchaincyf/doubao-search-mcp
+```
+
+### 从源码安装
 
 ```bash
 git clone https://github.com/alchaincyf/doubao-search-mcp.git
 cd doubao-search-mcp
 npm install && npm run build
 claude mcp add doubao-search \
-  -e DOUBAO_SEARCH_API_KEY=your-key-here \
-  -- node /path/to/doubao-search-mcp/dist/index.js
+  -e DOUBAO_SEARCH_API_KEY=你的Key \
+  -- node /绝对路径/doubao-search-mcp/dist/index.js
 ```
 
-## Tool
+## 工具参数
 
-`doubao_search`
+装好后 agent 多出一个 `doubao_search` 工具：
 
-| Param | Type | Default | Description |
+| 参数 | 类型 | 默认 | 说明 |
 |---|---|---|---|
-| `query` | string | — | Search query, Chinese or English; natural language works |
-| `count` | int 1-20 | 10 | Number of results |
-| `snippet_length` | int 50-2000 | 600 | Max chars per snippet; raise for deep reading |
-| `images` | int 0-3 | 0 | Max images per result (CDN URLs) |
+| `query` | string | — | 搜索词，中英文都行，自然语言效果就很好 |
+| `count` | int 1-20 | 10 | 返回条数 |
+| `snippet_length` | int 50-2000 | 600 | 每条摘要的最大字符数，深度阅读时调大 |
+| `images` | int 0-3 | 0 | 每条结果最多返回几张图（CDN 直链，带宽高） |
 
-Example result entry:
+## 背后的故事
 
+我上个月写过一篇文章，教大家把豆包 2.1 Pro 接进 Claude Code 当主力模型用。跟着做的读者很快会撞到同一堵墙：模型换了，搜索没了。
+
+正好豆包搜索在 7 月对开发者开放了 API。我拿到 Key 后先自己测了一轮：返回结构里那个 token 计数字段让我确认这个 API 值得包一层 MCP——它不是把「给人看的搜索结果」转给 agent，是从设计上就在替 agent 的上下文预算着想。于是有了这个仓库：上次换大脑，这次接眼睛。
+
+## 关于作者
+
+**花叔 Huashu** — AI Native Coder，独立开发者，代表作：小猫补光灯（AppStore 付费榜 Top1）
+
+| 平台 | 链接 |
+|------|------|
+| 🌐 官网 | [bookai.top](https://bookai.top) · [huasheng.ai](https://www.huasheng.ai) |
+| 𝕏 Twitter | [@AlchainHust](https://x.com/AlchainHust) |
+| 📺 B站 | [花叔v](https://space.bilibili.com/14097567) |
+| ▶️ YouTube | [@Alchain](https://www.youtube.com/@Alchain) |
+| 📕 小红书 | [花叔](https://www.xiaohongshu.com/user/profile/5abc6f17e8ac2b109179dfdf) |
+| 💬 公众号 | 微信搜「花叔」或扫码关注 ↓ |
+
+<img src="wechat-qrcode.jpg" alt="公众号二维码" width="360">
+
+## 许可证
+
+MIT — 随便用，随便改，随便造。
+
+---
+
+<div align="center">
+<sub>作者的其他项目 · also by 花叔</sub>
+
+[![FanBox · Coding Agent 的驾驶舱](https://raw.githubusercontent.com/alchaincyf/fanbox/master/assets/promo-banner.jpg)](https://github.com/alchaincyf/fanbox)
+
+[女娲.skill — 蒸馏任何人的思维方式](https://github.com/alchaincyf/nuwa-skill) · [达尔文.skill — 让 Skill 无限进化](https://github.com/alchaincyf/darwin-skill) · [huashu-design — HTML 原生设计 skill](https://github.com/alchaincyf/huashu-design)
+
+</div>
+
+---
+
+## English
+
+> *"You switched Claude Code to a Chinese LLM — and it can't browse the web anymore."*
+
+Claude Code's built-in WebSearch is an Anthropic **server-side** tool. Point `ANTHROPIC_BASE_URL` at any Anthropic-compatible endpoint (Doubao Seed, Kimi, GLM, DeepSeek...) and your agent silently goes offline.
+
+**doubao-search-mcp** plugs that gap with [Doubao Search](https://console.volcengine.com/search-infinity/web-search-exp) — the search API Volcengine built for AI agents, now open to developers with **500 free searches/month**:
+
+- **Long-form snippets** (up to 2000 chars of article body per result) — consumable directly, no second crawl needed
+- **Publish time down to the second** + source name on every result
+- **Exclusive ByteDance sources**: Toutiao articles, Douyin Baike (top-ranked for entity lookups)
+- **Cross-language**: English queries return first-party sources (official docs, changelogs)
+- **`ContentTokenCount` per result** — budget your context window precisely
+
+Install (Claude Code):
+
+```bash
+claude mcp add doubao-search \
+  -e DOUBAO_SEARCH_API_KEY=your-key \
+  -- npx -y github:alchaincyf/doubao-search-mcp
 ```
-[1] "一人公司"与"手搓经济"，两个新词寓春意-新华网
-来源: 新华网 | 2026-03-19T09:00:22+08:00
-URL: http://www.xinhuanet.com/tech/20260319/...
-<article body snippet, up to snippet_length chars>
-```
 
-## 中文说明
+Or add the JSON config above to any MCP client. Tool: `doubao_search(query, count, snippet_length, images)`.
 
-豆包搜索是火山引擎面向AI Agent的联网信息服务，现已向企业和开发者开放，每月免费500次。这个MCP server把它接进Claude Code、Cursor等任何支持MCP的agent：
-
-- 把Claude Code模型换成国产模型后WebSearch会失效（那是Anthropic的服务端工具），装上本server即可补上联网能力
-- 返回千字级正文摘要（不是链接列表）、精确到秒的发布时间、可追溯信源，字节系独家内容（今日头条、抖音百科）
-- 安装方式见上：一条 `claude mcp add` 命令即可
-
-## License
-
-MIT
+MIT License © [花叔 Huashu](https://github.com/alchaincyf)
