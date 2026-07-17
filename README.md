@@ -16,7 +16,7 @@
 
 <br>
 
-[为什么需要它](#为什么需要它) · [效果](#效果) · [安装](#安装) · [工具参数](#工具参数)
+[为什么需要它](#为什么需要它) · [效果](#效果) · [安装](#安装) · [工具参数](#工具参数) · [AI 增强层](#可选ai-增强层)
 
 <br>
 
@@ -117,6 +117,40 @@ claude mcp add doubao-search \
 | `count` | int 1-20 | 10 | 返回条数 |
 | `snippet_length` | int 50-2000 | 600 | 每条摘要的最大字符数，深度阅读时调大 |
 | `images` | int 0-3 | 0 | 每条结果最多返回几张图（CDN 直链，带宽高） |
+| `max_age_days` | int 1-365 | 关 | 时效过滤：剔除 N 天前发布的结果（无时间戳的保留）。纯代码实现，不花钱 |
+
+## 可选：AI 增强层
+
+搜索结果拿回来之后，还可以让一个便宜的小模型再加工一道。这层是**可选项，不是默认行为**，三层开关都在你手里：
+
+1. 不配 `ARK_API_KEY`，这层完全不存在，行为和纯搜索版一模一样，连参数都不会出现在工具里
+2. 配了 key，增强能力才注册进来，但每次调用仍然是原始结果直出
+3. 只有 agent 显式传 `max_tokens` 参数、或点名调用 `doubao_cross_check` 工具时，AI 加工才真正发生
+
+加工层只做**筛选和压缩**，不做理解和结论——来源名、发布时间、URL 一律保留，判断留给你的主模型。
+
+### 开启方式
+
+在安装命令里多加两个环境变量（[方舟控制台](https://console.volcengine.com/ark) 创建 API Key）：
+
+```bash
+claude mcp add doubao-search \
+  -e DOUBAO_SEARCH_API_KEY=你的搜索Key \
+  -e ARK_API_KEY=你的方舟Key \
+  -- npx -y github:alchaincyf/doubao-search-mcp
+```
+
+默认用 `doubao-seed-2-0-lite-260215`（Seed 2.0 Lite，输入 0.6 元/百万 token，一次加工的成本约等于零），可用 `ARK_MODEL` 换模型、`ARK_BASE_URL` 换端点。
+
+### 能力一：token 预算器（`doubao_search` 的 `max_tokens` 参数）
+
+搜索 API 每条结果自带 `ContentTokenCount`，这个参数把它用起来：传 `max_tokens: 800`，10 条千字级结果就被压缩筛选到约 800 token 再进你的上下文——不相关的剔掉，留下的每条保留来源、时间、URL 和原文关键句。搜索工具最常见的翻车是「一次返回撑爆上下文」，这个参数就是给上下文预算装的阀门。AI 加工失败时自动降级为原始结果，搜索永远不会因为加工层挂掉。
+
+### 能力二：多信源交叉核查（`doubao_cross_check` 工具）
+
+给一个问题或一句待核实的说法，它在一次调用里完成：从不同角度生成 3-4 路搜索词（事实本身/最新进展/官方口径/相反说法）→ 并行搜索、按 URL 去重 → 逐信源比对，输出结构化报告：**核查结论、信源共识、信源分歧（各方说法+发布时间）、信源清单、时效提示**。硬规则是只用搜到的内容、不引入模型自己的知识，信源不够就明说无法确认。
+
+这是个重工具（多路搜索 + 两次 LLM 调用，几十秒），适合核实传闻、信源打架的突发新闻、任何值得多方求证的事实。日常搜索请继续用 `doubao_search`。
 
 ## 背后的故事
 
@@ -178,6 +212,8 @@ claude mcp add doubao-search \
   -- npx -y github:alchaincyf/doubao-search-mcp
 ```
 
-Or add the JSON config above to any MCP client. Tool: `doubao_search(query, count, snippet_length, images)`.
+Or add the JSON config above to any MCP client. Tool: `doubao_search(query, count, snippet_length, images, max_age_days)`.
+
+**Optional AI layer** (strictly opt-in — without `ARK_API_KEY` the server behaves exactly like the plain version): set `ARK_API_KEY` (Volcengine Ark) to unlock a `max_tokens` context-budget compressor on `doubao_search` (filter + compress only, sources/URLs/timestamps preserved, no conclusions added) and a `doubao_cross_check` tool (fans out 3-4 query angles, dedupes sources, returns a structured report: verdict / consensus / discrepancies / source list / freshness caveat). Powered by Doubao Seed 2.0 Lite by default (`ARK_MODEL` to override).
 
 MIT License © [花叔 Huashu](https://github.com/alchaincyf)
