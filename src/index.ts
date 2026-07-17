@@ -83,7 +83,9 @@ async function searchDoubao(params: {
   const data = (await res.json()) as {
     Result?: { TotalDocCount?: number; Documents?: SearchDocument[] };
   };
-  return data.Result?.Documents ?? [];
+  // 服务端目前忽略 doc_count 固定返回 10 条（2026-07 实测 3/15/20/不传均返 10），
+  // 在客户端截断兑现 count 语义；doc_count 仍随请求发送，服务端实现后自动生效
+  return (data.Result?.Documents ?? []).slice(0, params.count);
 }
 
 async function callArk(
