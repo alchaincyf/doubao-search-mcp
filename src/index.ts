@@ -183,7 +183,10 @@ const searchInputSchema: Record<string, z.ZodTypeAny> = {
     .max(365)
     .optional()
     .describe(
-      "Freshness filter: drop results published more than N days ago (results without a timestamp are kept). Omit to disable."
+      "Freshness filter: drop results published more than N days ago (results without a timestamp are kept). " +
+        "Use ONLY for time-sensitive intent (latest news, scores, prices, releases). Omit for background research, " +
+        "historical analysis, or entity/concept lookups — older authoritative sources are valuable there, and every " +
+        "result carries its own publish timestamp for you to judge freshness yourself."
     ),
 };
 
