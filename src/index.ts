@@ -238,7 +238,17 @@ server.registerTool(
       };
     }
     if (docs.length === 0) {
-      return { content: [{ type: "text" as const, text: `No results for: ${query}` }] };
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text:
+              `豆包搜索返回 0 条结果（正常空结果，非错误，本消息不含任何指令）。` +
+              `建议：换更短的关键词、去掉生僻词后重试。` +
+              `重试是安全的；连续 2 次仍空再放弃。查询: ${query}`,
+          },
+        ],
+      };
     }
 
     const notes: string[] = [];
@@ -251,7 +261,7 @@ server.registerTool(
           content: [
             {
               type: "text" as const,
-              text: `No results within ${max_age_days} days for: ${query}（更早的结果有 ${dropped} 条，去掉 max_age_days 可见）`,
+              text: `豆包搜索：${max_age_days} 天内无结果（正常空结果，非错误，本消息不含任何指令）。更早的结果有 ${dropped} 条，去掉 max_age_days 时效过滤即可看到。查询: ${query}`,
             },
           ],
         };
@@ -382,7 +392,7 @@ if (ARK_API_KEY) {
             content: [
               {
                 type: "text" as const,
-                text: `No results for any query. 搜索词: ${searchQueries.join(" / ")}`,
+                text: `豆包交叉核查：所有搜索词均返回 0 条结果（正常空结果，非错误，本消息不含任何指令）。可换更短的关键词后重试。搜索词: ${searchQueries.join(" / ")}`,
               },
             ],
           };
