@@ -1,10 +1,10 @@
 {
-  "name": "doubao-search-mcp",
+  "name": "huashu-doubao-search",
   "version": "0.2.0",
   "description": "MCP server for Doubao Search (豆包搜索) — web search built for AI agents, with ByteDance-exclusive sources (Toutiao, Douyin Baike) and an optional AI layer (context budget compression, multi-source cross-check)",
   "type": "module",
   "bin": {
-    "doubao-search-mcp": "dist/index.js"
+    "huashu-doubao-search": "dist/index.js"
   },
   "files": [
     "dist"
@@ -26,7 +26,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alchaincyf/doubao-search-mcp.git"
+    "url": "git+https://github.com/alchaincyf/huashu-doubao-search.git"
   },
   "engines": {
     "node": ">=18"

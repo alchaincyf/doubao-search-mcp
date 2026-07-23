@@ -1,6 +1,6 @@
 <div align="center">
 
-# doubao-search-mcp
+# huashu-doubao-search
 
 > *「你给 Claude Code 换上了国产模型，然后发现它不会上网了」*
 
@@ -67,9 +67,9 @@ URL: http://www.xinhuanet.com/tech/20260319/259b0a6eb28c...
 **Claude Code**（一条命令）：
 
 ```bash
-claude mcp add doubao-search \
+claude mcp add huashu-doubao-search \
   -e DOUBAO_SEARCH_API_KEY=你的Key \
-  -- npx -y github:alchaincyf/doubao-search-mcp
+  -- npx -y github:alchaincyf/huashu-doubao-search
 ```
 
 加 `--scope user` 则所有项目可用。
@@ -79,9 +79,9 @@ claude mcp add doubao-search \
 ```json
 {
   "mcpServers": {
-    "doubao-search": {
+    "huashu-doubao-search": {
       "command": "npx",
-      "args": ["-y", "github:alchaincyf/doubao-search-mcp"],
+      "args": ["-y", "github:alchaincyf/huashu-doubao-search"],
       "env": {
         "DOUBAO_SEARCH_API_KEY": "你的Key"
       }
@@ -93,18 +93,18 @@ claude mcp add doubao-search \
 **最省事的方式**：把这个仓库链接直接丢给你的 agent，说一句：
 
 ```
-帮我安装这个 MCP：https://github.com/alchaincyf/doubao-search-mcp
+帮我安装这个 MCP：https://github.com/alchaincyf/huashu-doubao-search
 ```
 
 ### 从源码安装
 
 ```bash
-git clone https://github.com/alchaincyf/doubao-search-mcp.git
-cd doubao-search-mcp
+git clone https://github.com/alchaincyf/huashu-doubao-search.git
+cd huashu-doubao-search
 npm install && npm run build
-claude mcp add doubao-search \
+claude mcp add huashu-doubao-search \
   -e DOUBAO_SEARCH_API_KEY=你的Key \
-  -- node /绝对路径/doubao-search-mcp/dist/index.js
+  -- node /绝对路径/huashu-doubao-search/dist/index.js
 ```
 
 ## 工具参数
@@ -134,10 +134,10 @@ claude mcp add doubao-search \
 在安装命令里多加两个环境变量（[方舟控制台](https://console.volcengine.com/ark) 创建 API Key）：
 
 ```bash
-claude mcp add doubao-search \
+claude mcp add huashu-doubao-search \
   -e DOUBAO_SEARCH_API_KEY=你的搜索Key \
   -e ARK_API_KEY=你的方舟Key \
-  -- npx -y github:alchaincyf/doubao-search-mcp
+  -- npx -y github:alchaincyf/huashu-doubao-search
 ```
 
 默认用 `doubao-seed-2-0-lite-260215`（Seed 2.0 Lite，输入 0.6 元/百万 token，一次加工的成本约等于零），可用 `ARK_MODEL` 换模型、`ARK_BASE_URL` 换端点。
@@ -196,7 +196,7 @@ MIT — 随便用，随便改，随便造。
 
 Claude Code's built-in WebSearch is an Anthropic **server-side** tool. Point `ANTHROPIC_BASE_URL` at any Anthropic-compatible endpoint (Doubao Seed, Kimi, GLM, DeepSeek...) and your agent silently goes offline.
 
-**doubao-search-mcp** plugs that gap with [Doubao Search](https://console.volcengine.com/search-infinity/web-search-exp) — the search API Volcengine built for AI agents, now open to developers with **500 free searches/month**:
+**huashu-doubao-search** plugs that gap with [Doubao Search](https://console.volcengine.com/search-infinity/web-search-exp) — the search API Volcengine built for AI agents, now open to developers with **500 free searches/month**:
 
 - **Long-form snippets** (up to 2000 chars of article body per result) — consumable directly, no second crawl needed
 - **Publish time down to the second** + source name on every result
@@ -207,9 +207,9 @@ Claude Code's built-in WebSearch is an Anthropic **server-side** tool. Point `AN
 Install (Claude Code):
 
 ```bash
-claude mcp add doubao-search \
+claude mcp add huashu-doubao-search \
   -e DOUBAO_SEARCH_API_KEY=your-key \
-  -- npx -y github:alchaincyf/doubao-search-mcp
+  -- npx -y github:alchaincyf/huashu-doubao-search
 ```
 
 Or add the JSON config above to any MCP client. Tool: `doubao_search(query, count, snippet_length, images, max_age_days)`.
